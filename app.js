@@ -34,6 +34,7 @@ const leadController = require('./controllers/lead');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const contactController = require('./controllers/contact');
+const policyController = require('./controllers/policy');
 
 /**
  * API keys and Passport configuration.
@@ -147,6 +148,8 @@ app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userControl
 app.get('/leads', passportConfig.isAuthenticated, leadController.index);
 app.get('/users', passportConfig.isAuthenticated, userController.getUsers);
 app.post('/createUser', userController.createUser);
+app.get('/policy', policyController.index);
+app.post('/createPolicy', policyController.createPolicy);
 
 /**
  * API examples routes.
