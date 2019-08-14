@@ -157,11 +157,18 @@ app.post('/api/lead', leadController.leadPost);
  * Users
  */
 app.get('/users', passportConfig.isAuthenticated, userController.getUsers);
-app.get('/policy', policyController.index);
-app.post('/createPolicy', policyController.createPolicy);
 app.post('/createUser', passportConfig.isAuthenticated,userController.createUser);
 app.post('/editUser',passportConfig.isAuthenticated, userController.editUser);
 app.post('/deleteUser',passportConfig.isAuthenticated, userController.deleteUser);
+
+/**
+ * Policy
+ */
+app.get('/policy',passportConfig.isAuthenticated, policyController.index);
+app.post('/createPolicy',passportConfig.isAuthenticated, policyController.createPolicy);
+app.post('/deletePolicy',passportConfig.isAuthenticated, policyController.deletePolicy);
+app.post('/editPolicy',passportConfig.isAuthenticated, policyController.editPolicy);
+
 
 /**
  * API examples routes.

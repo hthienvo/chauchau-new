@@ -2,6 +2,7 @@ extends ../layout
 block head
   //- script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js')
   //- script(language='javascript', src='https://code.jquery.com/jquery-3.3.1.js')
+  link(rel='stylesheet', href='https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css')
   
   style(type='text/css').
     #usersTable_wrapper {
@@ -222,6 +223,23 @@ block head
     .modal form label {
     font-weight: normal;
     }
+    #policyColumn{
+      word-wrap: break-word;
+      min-width: 160px;
+      max-width: 160px;
+    }
+    table.dataTable thead .sorting:after,
+    table.dataTable thead .sorting:before,
+    table.dataTable thead .sorting_asc:after,
+    table.dataTable thead .sorting_asc:before,
+    table.dataTable thead .sorting_asc_disabled:after,
+    table.dataTable thead .sorting_asc_disabled:before,
+    table.dataTable thead .sorting_desc:after,
+    table.dataTable thead .sorting_desc:before,
+    table.dataTable thead .sorting_desc_disabled:after,
+    table.dataTable thead .sorting_desc_disabled:before {
+    bottom: .5em;
+    }
   script(type='text/javascript').
     $(document).ready(function(){
     // Activate tooltip
@@ -275,12 +293,36 @@ block head
     //- });
     });
      $(document).on("click", ".edit", function () {
-        var myBookId = $(this).data('username');
-        $(".modal-body #nameID").val( myBookId );
+        var data = $(this).data();
+         $(".modal-body #policyId").val(data['id']);
+         $(".modal-body #epolicynumber").val(data['epolicynumber']);
+         $(".modal-body #attribute").val(data['attribute']);
+         $(".modal-body #estatus").val(data['status']);
+         $(".modal-body #eclientnumber").val(data['eclientnumber']);
+         $(".modal-body #eagentnumber").val(data['eagentnumber']);
+         $(".modal-body #created").val(data['created']);
+         $(".modal-body #estatusupdatedate").val(data['estatusupdatedate'].substring(0,10));
+         $(".modal-body #note").val(data['note']);
+         $(".modal-body #type").val(data['type']);
         // As pointed out in comments,
         // it is unnecessary to have to manually call the modal.
         // $('#addBookDialog').modal('show');
         });
+      $(document).on("click", ".delete", function () {
+          var data = $(this).data();
+          $(".modal-body #policyId").val( data['id']) ;
+        });
+      $(document).on("click","#deleteSelect", function () {
+        var idArray = "";
+        $('input[type="checkbox"]').each(function(){
+        if($(this). prop("checked") == true && this.id != "selectAll"){
+        idArray += $(this).data('id') + ',';
+        }
+        });
+        idArray = idArray.substring(0, idArray.length - 1);
+        $(".modal-body #policyId").val(idArray);
+        $('#deletePolicyModal').modal('show');
+      });  
 
     
 block content
@@ -296,133 +338,53 @@ block content
               a.btn.btn-success(href='#addPolicyModal', data-toggle='modal')
                 i.material-icons 
                 span Add New Policy
-              a.btn.btn-danger(href='#deletePolicyModal', data-toggle='modal')
+              a.btn.btn-danger(href='#deletePolicyModal',id="deleteSelect", data-toggle='modal')
                 i.material-icons 
                 span Delete
-        table#usersTable.table.table-striped.table-hover
+        table#usersTable.table.table-striped.table-sm(width='100%')
           thead
             tr
-              th
+              th(scope='col')
                 span.custom-checkbox
                   input#selectAll(type='checkbox')
                   label(for='selectAll')
-              th Policy Number
-              th Attribute
-              th Status
-              th Client Number
-              th Agent Number
-              th Created
-              th Status Updated Date
-              th Note
-              th Type
-              th Action
+              th(scope='col') Policy Number
+              th(scope='col') Attribute
+              th(scope='col') Status
+              th(scope='col') Client Number
+              th(scope='col') Agent Number
+              th(scope='col') Created
+              th(scope='col') Status Updated Date
+              th(scope='col') Note
+              th(scope='col') Type
+              th(scope='col') Action
 
           - var count = 1
           each policy in policies
+            - var idPolicy = policy._id
             tr
               td
                 span.custom-checkbox
-                  input#checkbox1(type='checkbox', name='options[]', value=count++)
+                  input#checkbox1(type='checkbox', name='options[]', value=count++,data-id=idPolicy)
                   label(for='checkbox1')
-              td= policy.policyNumber
-              td= policy.attribute
-              td= policy.status
-              td= policy.clientNumber
-              td= policy.agentNumber
-              td= policy.created
-              td= policy.statusUpdateDate
-              td= policy.note
-              td= policy.type 
-              td
-                a.edit(href='#editPolicyModal', data-toggle='modal',id="editId"+ count,data-testid=count, data-userName=user.email)
+              td#policyColumn= policy.policyNumber
+              td#policyColumn= policy.attribute
+              td#policyColumn= policy.status
+              td#policyColumn= policy.clientNumber
+              td#policyColumn= policy.agentNumber
+              td#policyColumn= policy.created
+              td#policyColumn= policy.statusUpdateDate
+              td#policyColumn= policy.note
+              td#policyColumn= policy.type 
+              td#policyColumn
+                a.edit(href='#editPolicyModal', data-toggle='modal',id="editId"+ count,data-id=idPolicy, data-epolicynumber=policy.policyNumber, 
+                data-attribute=policy.attribute, data-status=policy.status, data-eclientnumber=policy.clientNumber
+                data-eagentnumber=policy.agentNumber, data-created=policy.created, data-estatusupdatedate=policy.statusUpdateDate
+                data-note=policy.note,data-type=policy.type)
                   i.material-icons(data-toggle='tooltip', title='Edit') 
-                a.delete(href='#deletePolicyModal', data-toggle='modal')
+                a.delete(href='#deletePolicyModal', data-toggle='modal', data-id=idPolicy)
                   i.material-icons(data-toggle='tooltip', title='Delete') 
-      //add Modal
-      #addPolicyModal.modal.fade
-        .modal-dialog
-          .modal-content
-            form(method='POST',action='/createPolicy')
-              .modal-header
-                h4.modal-title Add New Policy
-                button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-              input(type='hidden', name='_csrf', value=_csrf)
-              .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='policyNumber') Policy Number
-                .col-md-7
-                  input.form-control(type='text', name='policyNumber', id='policyNumber', placeholder='policyNumber', autofocus, autocomplete='policyNumber', required)
-              .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='attribute') Attribute
-                .col-md-7
-                  input.form-control(type='text', name='attribute', id='attribute', placeholder='Attribute', autocomplete='attribute', required)
-              .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='status') Status
-                .col-md-7
-                  input.form-control(type='text', name='status', id='status', placeholder='Status', autocomplete='status', required)
-                  .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='clientNumber') Client Number
-                .col-md-7
-                  input.form-control(type='text', name='clientNumber', id='clientNumber', placeholder='Client Number', autocomplete='clientNumber', required)
-                  .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='agentNumber') Agent Number
-                .col-md-7
-                  input.form-control(type='text', name='agentNumber', id='agentNumber', placeholder='Agent Number', autocomplete='agentNumber', required)
-                  .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='created') Created
-                .col-md-7
-                  input.form-control(type='text', name='created', id='created', placeholder='Created', autocomplete='created', required)
-                  .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='statusUpdateDate') Status Update Date
-                .col-md-7
-                  input.form-control(type='date', name='statusUpdateDate', id='statusUpdateDate', placeholder='Status Update Date', autocomplete='statusUpdateDate', required)
-                  .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='note') Note
-                .col-md-7
-                  input.form-control(type='text', name='note', id='note', placeholder='Note', autocomplete='note', required)
-                  .form-group.row
-                label.col-md-3.col-form-label.font-weight-bold.text-right(for='type') Type
-                .col-md-7
-                  input.form-control(type='text', name='type', id='type', placeholder='Type', autocomplete='type', required)
-              .modal-footer
-                input.btn.btn-default(type='button', data-dismiss='modal', value='Cancel')
-                input.btn.btn-success(type='submit', value='Add')
-      // Edit Modal HTML
-      #editPolicyModal.modal.fade
-        .modal-dialog
-          .modal-content
-            form
-              .modal-header
-                h4.modal-title Edit Policy
-                button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-              .modal-body
-                .form-group
-                  label Name
-                  input.form-control(type='text', required='', id='nameID',disabled)
-                .form-group
-                  label Email
-                  input.form-control(type='email', required='')
-                .form-group
-                  label Address
-                  textarea.form-control(required='')
-                .form-group
-                  label Phone
-                  input.form-control(type='text', required='')
-              .modal-footer
-                input.btn.btn-default(type='button', data-dismiss='modal', value='Cancel')
-                input.btn.btn-info(type='submit', value='Save')
-      // Delete Modal HTML
-      #deletePolicyModal.modal.fade
-        .modal-dialog
-          .modal-content
-            form
-              .modal-header
-                h4.modal-title Delete Policy
-                button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-              .modal-body
-                p Are you sure you want to delete these Records?
-                p.text-warning
-                  small This action cannot be undone.
-              .modal-footer
-                input.btn.btn-default(type='button', data-dismiss='modal', value='Cancel')
-                input.btn.btn-danger(type='submit', value='Delete')
-
+          include addModal
+          include editModal
+          include deleteModal
+      
